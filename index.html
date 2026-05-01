@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#2563eb">
+    <title>Expense Tracker</title>
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="icons/icon.svg">
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <header class="app-header">
+      <div>
+        <p class="eyebrow">Monthly Budget</p>
+        <h1>Expense Tracker</h1>
+      </div>
+      <button class="install-button" id="installButton" hidden>Install</button>
+    </header>
+
+    <main>
+      <section class="summary-grid" aria-label="Expense summary">
+        <article class="summary-card wallet-card">
+          <label>
+            Wallet
+            <input id="walletAmount" type="number" min="0" step="0.01" placeholder="0.00">
+          </label>
+        </article>
+        <article class="summary-card">
+          <span>Total spent</span>
+          <strong id="totalSpent">RM 0.00</strong>
+        </article>
+        <article class="summary-card">
+          <span>Total budget</span>
+          <strong id="totalBudget">RM 0.00</strong>
+        </article>
+        <article class="summary-card" id="remainingCard">
+          <span>Remaining</span>
+          <strong id="totalRemaining">RM 0.00</strong>
+        </article>
+      </section>
+
+      <section class="workspace">
+        <form class="panel expense-form" id="expenseForm">
+          <div class="panel-heading">
+            <h2>Expenses</h2>
+            <button type="reset" class="ghost-button">Clear</button>
+          </div>
+
+          <div class="type-row">
+            <label>
+              Type
+              <select id="expenseType" required></select>
+            </label>
+            <button class="ghost-button" id="manageTypesButton" type="button">Add new expense</button>
+          </div>
+
+          <label>
+            Amount
+            <input id="expenseAmount" type="number" min="0.01" step="0.01" placeholder="0.00" required>
+          </label>
+
+          <label>
+            Note
+            <input id="expenseNote" type="text" maxlength="70" placeholder="Optional">
+          </label>
+
+          <label>
+            Date
+            <input id="expenseDate" type="date" required>
+          </label>
+
+          <button type="submit" class="primary-button">Add Expense</button>
+        </form>
+
+        <section class="panel limits-panel">
+          <div class="panel-heading">
+            <h2>Jar Budgets</h2>
+          </div>
+          <div class="limits-list" id="jarsList"></div>
+        </section>
+      </section>
+
+      <section class="panel">
+        <div class="panel-heading">
+          <h2>Expenses</h2>
+          <div class="filter-row">
+            <input id="filterMonth" type="month" aria-label="Filter expenses by month">
+            <select id="filterType" aria-label="Filter expenses by type">
+              <option value="All">All types</option>
+            </select>
+          </div>
+        </div>
+        <div class="expense-list" id="expenseList"></div>
+      </section>
+    </main>
+
+    <dialog class="type-dialog" id="typeDialog">
+      <div class="dialog-heading">
+        <h2>Manage Expense Names</h2>
+        <button class="icon-button" id="closeTypeDialogButton" type="button" aria-label="Close type manager">x</button>
+      </div>
+      <div class="custom-type-row">
+        <label>
+          Expense name
+          <input id="customType" type="text" maxlength="40" placeholder="Phone installment">
+        </label>
+        <button class="ghost-button" id="addTypeButton" type="button">Add Name</button>
+      </div>
+      <div class="category-list" id="categoryList"></div>
+    </dialog>
+
+    <template id="jarTemplate">
+      <article class="limit-row">
+        <div>
+          <strong></strong>
+          <span></span>
+        </div>
+        <label>
+          Budget
+          <input type="number" min="0" step="0.01" placeholder="0.00">
+        </label>
+      </article>
+    </template>
+
+    <script src="app.js"></script>
+  </body>
+</html>
