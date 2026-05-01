@@ -206,9 +206,14 @@ function formatAmount(value) {
   return currency.format(Number(value) || 0);
 }
 
-function getJarTotals() {
+function isExpenseInMonth(expense, month) {
+  return !month || expense.date.startsWith(month);
+}
+
+function getJarTotals(month) {
   return getJars().reduce((totals, jar) => {
     totals[jar] = state.expenses
+      .filter((expense) => isExpenseInMonth(expense, month))
       .filter((expense) => expense.jar === jar)
       .reduce((sum, expense) => sum + expense.amount, 0);
     return totals;
@@ -242,8 +247,10 @@ function populateSelects() {
   elements.filter.value = selectedFilter === "All" || getCategories().includes(selectedFilter) ? selectedFilter : "All";
 }
 
-function renderSummary(totals) {
-  const spent = state.expenses.reduce((sum, expense) => sum + expense.amount, 0);
+function renderSummary(totals, month) {
+  const spent = state.expenses
+    .filter((expense) => isExpenseInMonth(expense, month))
+    .reduce((sum, expense) => sum + expense.amount, 0);
   const budget = getJars().reduce((sum, jar) => sum + (Number(state.jarBudgets[jar]) || 0), 0);
   const wallet = Number(state.wallet) || 0;
   const remainingBase = wallet || budget;
@@ -323,7 +330,7 @@ function renderExpenses(jarTotals) {
   const selectedMonth = elements.filterMonth.value;
   const expenses = state.expenses
     .filter((expense) => selectedType === "All" || expense.type === selectedType)
-    .filter((expense) => !selectedMonth || expense.date.startsWith(selectedMonth))
+    .filter((expense) => isExpenseInMonth(expense, selectedMonth))
     .sort((a, b) => b.date.localeCompare(a.date) || b.createdAt - a.createdAt);
 
   elements.expenseList.replaceChildren();
@@ -371,8 +378,9 @@ function renderExpenses(jarTotals) {
 
 function render() {
   populateSelects();
-  const jarTotals = getJarTotals();
-  renderSummary(jarTotals);
+  const selectedMonth = elements.filterMonth.value;
+  const jarTotals = getJarTotals(selectedMonth);
+  renderSummary(jarTotals, selectedMonth);
   renderJars(jarTotals);
   renderCategoryManager();
   renderExpenses(jarTotals);
