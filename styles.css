@@ -55,6 +55,13 @@ main {
   text-transform: uppercase;
 }
 
+.month-title {
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 1rem;
+  font-weight: 750;
+}
+
 h1,
 h2,
 p {
