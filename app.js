@@ -20,7 +20,7 @@ const currency = new Intl.NumberFormat("en-MY", {
 });
 
 const elements = {
-  form: document.querySelector("#expenseForm"),
+  form: document.querySelector("#addExpensePanel"),
   type: document.querySelector("#expenseType"),
   manageTypesButton: document.querySelector("#manageTypesButton"),
   typeDialog: document.querySelector("#typeDialog"),
@@ -32,10 +32,19 @@ const elements = {
   date: document.querySelector("#expenseDate"),
   filter: document.querySelector("#filterType"),
   filterMonth: document.querySelector("#filterMonth"),
+  spendingChart: document.querySelector("#spendingChart"),
+  chartTotal: document.querySelector("#chartTotal"),
+  chartLegend: document.querySelector("#chartLegend"),
   jarsList: document.querySelector("#jarsList"),
   categoryList: document.querySelector("#categoryList"),
   expenseList: document.querySelector("#expenseList"),
+  expensePreviewList: document.querySelector("#expensePreviewList"),
+  walletDisplay: document.querySelector("#walletDisplay"),
+  editWalletButton: document.querySelector("#editWalletButton"),
+  walletDialog: document.querySelector("#walletDialog"),
+  walletForm: document.querySelector("#walletForm"),
   walletAmount: document.querySelector("#walletAmount"),
+  closeWalletDialogButton: document.querySelector("#closeWalletDialogButton"),
   totalSpent: document.querySelector("#totalSpent"),
   totalBudget: document.querySelector("#totalBudget"),
   totalRemaining: document.querySelector("#totalRemaining"),
@@ -43,6 +52,8 @@ const elements = {
   remainingCard: document.querySelector("#remainingCard"),
   installButton: document.querySelector("#installButton"),
   jarTemplate: document.querySelector("#jarTemplate"),
+  tabs: document.querySelectorAll("[data-tab-target]"),
+  tabPanels: document.querySelectorAll("[data-tab-panel]"),
 };
 
 let deferredInstallPrompt = null;
@@ -257,6 +268,7 @@ function renderSummary(totals, month) {
   const remainingBase = wallet || budget;
   const remaining = remainingBase - spent;
 
+  elements.walletDisplay.textContent = formatAmount(wallet);
   elements.walletAmount.value = wallet || "";
   elements.totalSpent.textContent = formatAmount(spent);
   elements.totalBudget.textContent = formatAmount(budget);
@@ -380,6 +392,9 @@ function renderExpenses(jarTotals) {
     deleteButton.setAttribute("aria-label", `Delete ${expense.type} expense`);
     deleteButton.textContent = "x";
     deleteButton.addEventListener("click", () => {
+      const confirmed = window.confirm(`Remove this ${expense.type} expense from your records?`);
+      if (!confirmed) return;
+
       state.expenses = state.expenses.filter((item) => item.id !== expense.id);
       saveState();
       render();
@@ -391,6 +406,98 @@ function renderExpenses(jarTotals) {
   });
 }
 
+function renderSpendingChart() {
+  const selectedType = elements.filter.value;
+  const selectedMonth = elements.filterMonth.value;
+  const chartColors = ["#2563eb", "#14b8a6", "#f59e0b", "#ef4444", "#8b5cf6", "#22c55e", "#ec4899"];
+  const totalsByType = state.expenses
+    .filter((expense) => selectedType === "All" || expense.type === selectedType)
+    .filter((expense) => isExpenseInMonth(expense, selectedMonth))
+    .reduce((totals, expense) => {
+      totals[expense.type] = (totals[expense.type] || 0) + expense.amount;
+      return totals;
+    }, {});
+  const entries = Object.entries(totalsByType)
+    .filter(([, amount]) => amount > 0)
+    .sort((a, b) => b[1] - a[1]);
+  const total = entries.reduce((sum, [, amount]) => sum + amount, 0);
+
+  elements.chartTotal.textContent = formatAmount(total);
+  elements.chartLegend.replaceChildren();
+
+  if (!entries.length) {
+    elements.spendingChart.style.background = "#eef7ff";
+    const empty = document.createElement("div");
+    empty.className = "empty-state compact-empty";
+    empty.textContent = "No spending to chart yet.";
+    elements.chartLegend.append(empty);
+    return;
+  }
+
+  let cursor = 0;
+  const segments = entries.map(([type, amount], index) => {
+    const start = cursor;
+    const size = (amount / total) * 100;
+    cursor += size;
+    return `${chartColors[index % chartColors.length]} ${start}% ${cursor}%`;
+  });
+
+  elements.spendingChart.style.background = `conic-gradient(${segments.join(", ")})`;
+
+  entries.forEach(([type, amount], index) => {
+    const row = document.createElement("div");
+    const swatch = document.createElement("span");
+    const label = document.createElement("strong");
+    const value = document.createElement("span");
+    const percent = total ? Math.round((amount / total) * 100) : 0;
+
+    row.className = "chart-legend-row";
+    swatch.className = "chart-swatch";
+    swatch.style.background = chartColors[index % chartColors.length];
+    label.textContent = type;
+    value.textContent = `${formatAmount(amount)} (${percent}%)`;
+
+    row.append(swatch, label, value);
+    elements.chartLegend.append(row);
+  });
+}
+
+function renderExpensePreview() {
+  const expenses = [...state.expenses]
+    .sort((a, b) => b.date.localeCompare(a.date) || b.createdAt - a.createdAt)
+    .slice(0, 5);
+
+  elements.expensePreviewList.replaceChildren();
+
+  if (!expenses.length) {
+    const empty = document.createElement("div");
+    empty.className = "empty-state compact-empty";
+    empty.textContent = "No expenses entered yet.";
+    elements.expensePreviewList.append(empty);
+    return;
+  }
+
+  expenses.forEach((expense) => {
+    const item = document.createElement("article");
+    item.className = "expense-item preview-expense-item";
+
+    const details = document.createElement("div");
+    const title = document.createElement("strong");
+    const meta = document.createElement("p");
+    title.textContent = expense.type;
+    meta.className = "expense-meta";
+    meta.textContent = [expense.date, expense.jar, expense.note].filter(Boolean).join(" - ");
+    details.append(title, meta);
+
+    const amount = document.createElement("span");
+    amount.className = "expense-amount";
+    amount.textContent = formatAmount(expense.amount);
+
+    item.append(details, amount);
+    elements.expensePreviewList.append(item);
+  });
+}
+
 function render() {
   populateSelects();
   const selectedMonth = elements.filterMonth.value;
@@ -399,6 +506,8 @@ function render() {
   renderSummary(jarTotals, selectedMonth);
   renderJars(jarTotals);
   renderCategoryManager();
+  renderExpensePreview();
+  renderSpendingChart();
   renderExpenses(jarTotals);
 }
 
@@ -418,6 +527,26 @@ function setCurrentMonth() {
 
   elements.filterMonth.value = `${year}-${month}`;
 }
+
+function activateTab(targetId) {
+  elements.tabs.forEach((tab) => {
+    const isActive = tab.dataset.tabTarget === targetId;
+    tab.classList.toggle("active", isActive);
+    tab.setAttribute("aria-selected", String(isActive));
+  });
+
+  elements.tabPanels.forEach((panel) => {
+    const isActive = panel.id === targetId;
+    panel.classList.toggle("active", isActive);
+    panel.hidden = !isActive;
+  });
+}
+
+elements.tabs.forEach((tab) => {
+  tab.addEventListener("click", () => {
+    activateTab(tab.dataset.tabTarget);
+  });
+});
 
 elements.form.addEventListener("submit", (event) => {
   event.preventDefault();
@@ -463,10 +592,29 @@ elements.filter.addEventListener("change", render);
 
 elements.filterMonth.addEventListener("change", render);
 
-elements.walletAmount.addEventListener("change", () => {
+elements.editWalletButton.addEventListener("click", () => {
+  elements.walletAmount.value = Number(state.wallet) || "";
+  elements.walletDialog.showModal();
+  elements.walletAmount.focus();
+});
+
+elements.walletForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+
   state.wallet = Number(elements.walletAmount.value) || 0;
   saveState();
   render();
+  elements.walletDialog.close();
+});
+
+elements.closeWalletDialogButton.addEventListener("click", () => {
+  elements.walletDialog.close();
+});
+
+elements.walletDialog.addEventListener("click", (event) => {
+  if (event.target === elements.walletDialog) {
+    elements.walletDialog.close();
+  }
 });
 
 elements.manageTypesButton.addEventListener("click", () => {
