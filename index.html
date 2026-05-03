@@ -15,7 +15,12 @@
       <div>
         <p class="eyebrow">Monthly Budget</p>
         <h1>Expense Tracker</h1>
-        <p class="month-title" id="monthTitle"></p>
+        <div class="header-month-control">
+          <label>
+            Month
+            <input id="filterMonth" type="month" aria-label="Filter expenses by month">
+          </label>
+        </div>
       </div>
       <button class="install-button" id="installButton" hidden>Install</button>
     </header>
@@ -97,8 +102,7 @@
         <section class="panel tab-panel" id="expenseHistoryPanel" data-tab-panel hidden>
           <div class="panel-heading">
             <h2>Expense Records</h2>
-            <div class="filter-row">
-              <input id="filterMonth" type="month" aria-label="Filter expenses by month">
+            <div class="filter-row history-filter-row">
               <select id="filterType" aria-label="Filter expenses by type">
                 <option value="All">All types</option>
               </select>

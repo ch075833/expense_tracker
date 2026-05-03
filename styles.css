@@ -55,11 +55,16 @@ main {
   text-transform: uppercase;
 }
 
-.month-title {
-  margin-top: 8px;
-  color: var(--muted);
-  font-size: 1rem;
-  font-weight: 750;
+.header-month-control {
+  display: grid;
+  grid-template-columns: 170px;
+  align-items: end;
+  gap: 14px;
+  margin-top: 10px;
+}
+
+.header-month-control label {
+  min-width: 170px;
 }
 
 h1,
@@ -238,6 +243,10 @@ h2 {
   display: grid;
   grid-template-columns: 160px 180px;
   gap: 10px;
+}
+
+.history-filter-row {
+  grid-template-columns: 180px;
 }
 
 label {
@@ -540,6 +549,10 @@ select:focus {
     align-items: flex-start;
   }
 
+  .header-month-control {
+    grid-template-columns: 1fr;
+  }
+
   .spending-chart {
     justify-self: center;
   }
@@ -557,6 +570,10 @@ select:focus {
 
   .install-button {
     width: 100%;
+  }
+
+  .header-month-control label {
+    min-width: 0;
   }
 
   .summary-card strong {

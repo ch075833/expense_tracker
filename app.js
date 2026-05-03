@@ -48,7 +48,6 @@ const elements = {
   totalSpent: document.querySelector("#totalSpent"),
   totalBudget: document.querySelector("#totalBudget"),
   totalRemaining: document.querySelector("#totalRemaining"),
-  monthTitle: document.querySelector("#monthTitle"),
   remainingCard: document.querySelector("#remainingCard"),
   installButton: document.querySelector("#installButton"),
   jarTemplate: document.querySelector("#jarTemplate"),
@@ -276,20 +275,6 @@ function renderSummary(totals, month) {
   elements.remainingCard.classList.toggle("over", remainingBase > 0 && remaining < 0);
 }
 
-function renderMonthTitle(month) {
-  if (!month) {
-    elements.monthTitle.textContent = "All months";
-    return;
-  }
-
-  const [year, monthNumber] = month.split("-").map(Number);
-  const date = new Date(year, monthNumber - 1);
-  elements.monthTitle.textContent = date.toLocaleDateString("en-MY", {
-    month: "long",
-    year: "numeric",
-  });
-}
-
 function renderJars(totals) {
   elements.jarsList.replaceChildren();
 
@@ -502,7 +487,6 @@ function render() {
   populateSelects();
   const selectedMonth = elements.filterMonth.value;
   const jarTotals = getJarTotals(selectedMonth);
-  renderMonthTitle(selectedMonth);
   renderSummary(jarTotals, selectedMonth);
   renderJars(jarTotals);
   renderCategoryManager();
